@@ -4,12 +4,21 @@ using System.Collections.Generic;
 
 public class GameBlock : MonoBehaviour {
 
+	public enum Powerup
+	{
+		BoardClear,
+		TimeStop
+	}
+
 	public static List<GameBlock> Pool = new List<GameBlock>();
 	public static GameBlock prefab;
 
 	public float SlideSpeed = 1.0f;
 
 	public bool IsPending = false;
+
+	[System.NonSerialized]
+	public Powerup? PowerupId;
 
 	[System.NonSerialized]
 	public int SlideX;
@@ -22,14 +31,17 @@ public class GameBlock : MonoBehaviour {
 	public int BoardY;
 
 	public Sprite BlockSprite;
+	public Sprite PowerupSprite;
 	public int BlockType;
 
 	SpriteRenderer _r;
+	SpriteRenderer _r2;
 	Transform _t;
 
 	public void ActivatePending()
 	{
 		_r.enabled = true;
+		_r2.enabled = true;
 		IsPending = false;
 	}
 
@@ -37,6 +49,7 @@ public class GameBlock : MonoBehaviour {
 	{
 		_r = GetComponent<SpriteRenderer>();
 		_t = transform;
+		_r2 = _t.GetChild(0).GetComponent<SpriteRenderer>();
 	}
 
 	public void StartSliding(int x, int y)
@@ -117,7 +130,7 @@ public class GameBlock : MonoBehaviour {
 		GameBoard.Current.Board[y, x] = this;
 	}
 
-	void InitializeFromPool(Sprite sprite, Vector3 localPosition, int block, Transform parent, int x, int y, bool isDeactivated = false)
+	void InitializeFromPool(Sprite sprite, Sprite powerup, Vector3 localPosition, int block, Powerup? powerupId, Transform parent, int x, int y, bool isDeactivated = false)
 	{
 		IsAnimating = false;
 		BlockSprite = _r.sprite = sprite;
@@ -125,6 +138,10 @@ public class GameBlock : MonoBehaviour {
 		_t.localPosition = localPosition;
 		BlockType = block;
 
+		PowerupSprite = _r2.sprite = powerup;
+		PowerupId = powerupId;
+
+		_r2.enabled = !isDeactivated;
 		_r.enabled = !isDeactivated;
 		IsPending = isDeactivated;
 
@@ -139,7 +156,7 @@ public class GameBlock : MonoBehaviour {
 	}
 
 	static GameBlock tmp;
-	public static GameBlock Spawn(Sprite sprite, Vector3 localPosition, int block, Transform parent, int x, int y, bool isDeactivated = false)
+	public static GameBlock Spawn(Sprite sprite, Sprite powerup, Vector3 localPosition, int block, Powerup? powerupId, Transform parent, int x, int y, bool isDeactivated = false)
 	{
 		// Attempt to use a pooled block
 		tmp = null;
@@ -149,14 +166,14 @@ public class GameBlock : MonoBehaviour {
 			{
 				tmp = Pool[i];
 				tmp.gameObject.SetActive(true);
-				tmp.InitializeFromPool(sprite, localPosition, block, parent, x, y, isDeactivated);
+				tmp.InitializeFromPool(sprite, powerup, localPosition, block, powerupId, parent, x, y, isDeactivated);
 				return tmp;
 			}
 		}
 
 		// Create a new block
 		tmp = (GameBlock)Instantiate(prefab);
-		tmp.InitializeFromPool(sprite, localPosition, block, parent, x, y, isDeactivated);
+		tmp.InitializeFromPool(sprite, powerup, localPosition, block, powerupId, parent, x, y, isDeactivated);
 		Pool.Add(tmp);
 		return tmp;
 	}

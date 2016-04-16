@@ -10,20 +10,40 @@ public class GameBoard : MonoBehaviour {
 	{
 		Selecting,
 		Animating,
+		GameOver
 	}
+
+	public Sprite TimeStopPowerup;
+	public Sprite BoardClearPowerup;
+
+	public Transform ScoreTransform;
+	public Transform BoardClearTransform;
+	public Transform TimeStopTransform;
 
 	[System.NonSerialized]
 	public int Score;
+	[System.NonSerialized]
+	public int BoardClearItems = 0;
+	[System.NonSerialized]
+	public int TimeStopItems = 0;
 
 	public Canvas UICanvas;
 
 	public int ScorePerBlock = 100;
+	public int ClearedBlocks = 0;
+	public int Level = 1;
+
+	public float SpeedIncreasePerLevel = 0.05f;
+
+	public float TimeStopTimer = 3.0f;
+	float timeStopTimer;
 
 	public int StartingBlocks = 10;
 	public float BlockSize = 0.64f;
 	public GameBlock BlockPrefab;
 	public GameTile TilePrefab;
 	public PendingBlock PendingPrefab;
+	public Flier FlierPrefab;
 
 	public SliderArrow ArrowPrefab;
 	public Sprite LeftArrow;
@@ -112,7 +132,23 @@ public class GameBoard : MonoBehaviour {
 		ClearArray(RowArrows);
 		ClearArray(ColArrows);
 
-		spawnTimer = 0;
+		if (collector != null)
+			collector.Clear();
+
+		Score = 0;
+		BoardClearItems = 0;
+		TimeStopItems = 0;
+		if (ClearedBlocksText.Current != null)
+			ClearedBlocksText.Current.Reset();
+		if (LevelText.Current != null)
+			LevelText.Current.Reset();
+        if (ScoreText.Current != null)
+			ScoreText.Current.SetScore(0);
+		if (BoardClearButton.Current != null)
+			BoardClearButton.Current.UpdateCount(0);
+		if (TimeStopButton.Current != null)
+			TimeStopButton.Current.UpdateCount(0);
+
 		StopAllCoroutines();
 	}
 
@@ -135,11 +171,28 @@ public class GameBoard : MonoBehaviour {
 		GameTile.prefab = TilePrefab;
 		GameBlock.prefab = BlockPrefab;
 		PendingBlock.prefab = PendingPrefab;
+		Flier.prefab = FlierPrefab;
 
 		CreateTiles();
 		CreateArrows();
 		InitBlocks();
 		StartCoroutine(SPAWN_TIMER_COROUTINE);
+	}
+
+	[System.NonSerialized]
+	public bool isTimeStopped = false;
+	public const string TIME_STOP_COROUTINE = "TimeStopCoroutine";
+	IEnumerator TimeStopCoroutine()
+	{
+		isTimeStopped = true;
+		timeStopTimer = 0;
+		while (timeStopTimer < TimeStopTimer)
+		{
+			timeStopTimer += Time.deltaTime;
+			yield return null;
+		}
+
+		isTimeStopped = false;
 	}
 
 	public const string SPAWN_TIMER_COROUTINE = "SpawnTimerCoroutine";
@@ -148,6 +201,12 @@ public class GameBoard : MonoBehaviour {
 		spawnTimer = 0;
 		while (spawnTimer < SpawnTimer)
 		{
+			if (isTimeStopped)
+			{
+				yield return null;
+				continue;
+			}
+
 			spawnTimer += Time.deltaTime;
 			yield return null;
 		}
@@ -209,6 +268,9 @@ public class GameBoard : MonoBehaviour {
 	int? selectedY;
 	public void SelectBlock(int? x, int? y)
 	{
+		if (CurrentState == GameState.GameOver)
+			return;
+
 		if (x.HasValue && y.HasValue)
 		{
 			SelectedBlock = Board[y.Value, x.Value];
@@ -253,6 +315,8 @@ public class GameBoard : MonoBehaviour {
 			for (int r = 0; r < Rows; r++)
 				for (int i = 0; i < RowArrows[r].Length; i++)
 					RowArrows[r][i].TileSelectionChanged(false);
+
+			return;
 		}
 
 			for (int c = 0; c < Cols; c++)
@@ -287,6 +351,7 @@ public class GameBoard : MonoBehaviour {
 	int spawnY;
 	int spawnBlockId;
 	int blockCount = 0;
+	GameBlock tmpBlock;
 	public void SpawnBlock()
 	{
 		while (true)
@@ -298,13 +363,14 @@ public class GameBoard : MonoBehaviour {
 			{
 				// Prevent the possibility of an infinite loop
 				TestForFailure();
+				if (CurrentState == GameState.GameOver)
+					return;
 				continue;
 			}
 
-			// TODO: Spawn pending with alternate sprite
-			int blockId = Mathf.Clamp(Random.Range(0, BlockSprites.Length), 0, BlockSprites.Length - 1);
-			PendingBlock.Spawn(BlockSprites[blockId],
-				GameBlock.Spawn(BlockSprites[blockId], GetLocalPosition(x, y), blockId, _t, x, y, true),
+			tmpBlock = GenerateBlock(x, y, true);
+            PendingBlock.Spawn(BlockSprites[tmpBlock.BlockType],
+				tmpBlock,
                 GetLocalPosition(x, y), UICanvas, _t, x, y);
 
 			break;
@@ -391,43 +457,103 @@ public class GameBoard : MonoBehaviour {
 		CopyBoard();
 		collector.Clear();
 
-		//for (int r = 0; r < Rows; r++)
-		//{
-		//	for (int c = 0; c < Rows; c++)
-		//	{
-				TestBlock(x,y);
+		// Only the currently moved block can trigger a clear
+		TestBlock(x,y);
 
-				// Destroy blocks if we matched 3 of a kind
-				if (collector.Count >= 3)
+		// Destroy blocks if we matched 3 of a kind
+		if (collector.Count >= 3)
+		{
+			// TODO: Do destruction effect for each cell
+
+			// Destroy all the blocks
+			while (collector.Count > 0)
+			{
+				ClearBlock(collector[0], true);
+				collector.RemoveAt(0);
+			}
+
+		}
+
+		// Finish testing this block
+		currentlyTesting = null;
+		collector.Clear();
+	}
+
+
+
+	void ClearBlock(GameBlock block, bool score)
+	{
+		if (block == SelectedBlock)
+			SelectBlock(null, null);
+		if (block.IsAnimating)
+			CurrentState = GameState.Selecting;
+
+		if (score)
+		{
+			// Collect Powerups
+			if (block.PowerupId.HasValue)
+			{
+				if (block.PowerupId.Value == GameBlock.Powerup.BoardClear)
 				{
-					// TODO: Do destruction effect for each cell
-
-					// Add score
-					// TODO: Give bonuses for multiple blocks
-					Score += collector.Count * ScorePerBlock;
-
-					// Destroy all the blocks
-					while (collector.Count > 0)
-					{
-						if (collector[0] == SelectedBlock)
-							SelectBlock(null, null);
-						if (collector[0].IsAnimating)
-							CurrentState = GameState.Selecting;
-						GameBlock.Despawn(collector[0]);
-						collector.RemoveAt(0);
-					}
+					Flier.Spawn(block.PowerupSprite, block.transform.position, BoardClearTransform.position, BoardClearTransform.parent.gameObject, 1);
 				}
+				else if (block.PowerupId.Value == GameBlock.Powerup.TimeStop)
+				{
+					Flier.Spawn(block.PowerupSprite, block.transform.position, TimeStopTransform.position, TimeStopTransform.parent.gameObject, 1);
+				}
+			}
 
-				// Finish testing this block
-				currentlyTesting = null;
-				collector.Clear();
-			//}
-		//}
+			Flier.Spawn(block.BlockSprite, block.transform.position, ScoreTransform.position, ScoreTransform.gameObject,
+					(collector.Count > 3) ? ScorePerBlock * (collector.Count - 2) : ScorePerBlock
+                );
+		}
+
+		GameBlock.Despawn(block);
 	}
 
 	public void TestForFailure()
 	{
+		// Test whether all the spaces are filled
+		for (int r = 0; r < Rows; r++)
+		{
+			for (int c = 0; c < Cols; c++)
+			{
+				// If not, return
+				if (Board[r, c] == null)
+					return;
+			}
+		}
 
+		// Go to Game Over state
+		Debug.Log("Game Over");
+		SelectBlock(null, null);
+		CurrentState = GameState.GameOver;
+	}
+
+	int blockId;
+	Sprite powerupSprite;
+	GameBlock.Powerup? blockPowerup;
+	GameBlock GenerateBlock(int x, int y, bool isDeactivated = false)
+	{
+		blockId = Mathf.Clamp(Random.Range(0, BlockSprites.Length), 0, BlockSprites.Length - 1);
+		float random = Random.value;
+		if (random >= 0.99f)
+		{
+			blockPowerup = GameBlock.Powerup.BoardClear;
+			powerupSprite = BoardClearPowerup;
+		}
+		else if (random >= 0.95f)
+		{
+			blockPowerup = GameBlock.Powerup.TimeStop;
+			powerupSprite = TimeStopPowerup;
+		}
+		else
+		{
+			blockPowerup = null;
+			powerupSprite = null;
+		}
+
+		return GameBlock.Spawn(BlockSprites[blockId], powerupSprite, GetLocalPosition(x, y), blockId, blockPowerup, _t, x, y, isDeactivated);
 	}
 
 	void InitBlocks()
@@ -444,8 +570,7 @@ public class GameBoard : MonoBehaviour {
 				continue;
 			}
 
-			int blockId = Mathf.Clamp(Random.Range(0, BlockSprites.Length), 0, BlockSprites.Length - 1);
-			GameBlock.Spawn(BlockSprites[blockId], GetLocalPosition(x, y), blockId, _t, x, y);
+			GenerateBlock(x, y);	
 		}
 	}
 	#endregion
@@ -458,6 +583,35 @@ public class GameBoard : MonoBehaviour {
 				(y - ((Rows - 1) / 2.0f)) * BlockSize,
 				0
 			);
+	}
+	#endregion
+
+	#region Powers
+	public void DoBoardClear()
+	{
+		if (BoardClearItems > 0 && CurrentState != GameState.GameOver)
+		{
+			BoardClearItems--;
+			BoardClearButton.Current.UpdateCount(BoardClearItems);
+			for (int r = 0; r < Rows; r++)
+			{
+				for (int c = 0; c < Cols; c++)
+				{
+					if (Board[r, c] != null && !Board[r, c].IsPending)
+						GameBlock.Despawn(Board[r, c]);
+				}
+			}
+		}
+	}
+
+	public void DoTimeStop()
+	{
+		if (TimeStopItems > 0 && CurrentState != GameState.GameOver)
+		{
+			TimeStopItems--;
+			TimeStopButton.Current.UpdateCount(TimeStopItems);
+			StartCoroutine(TIME_STOP_COROUTINE);
+		}
 	}
 	#endregion
 }

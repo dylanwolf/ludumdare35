@@ -26,14 +26,24 @@ public class PendingBlock : MonoBehaviour {
 
 	const string TIMER_COROUTINE = "TimerCoroutine";
 
+	Color tmpColor;
 	IEnumerator TimerCoroutine()
 	{
 		timer = 0;
 
 		while (timer < Timer)
 		{
+			if (GameBoard.Current.isTimeStopped)
+			{
+				yield return null;
+				continue;
+			}
+
 			timer += Time.deltaTime;
 			_i.fillAmount = timer / Timer;
+			tmpColor = _i.color;
+			tmpColor.a = timer / Timer;
+			_i.color = tmpColor;
 			yield return null;
 		}
 
