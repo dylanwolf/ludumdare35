@@ -1,0 +1,210 @@
+fileFormatVersion: 2
+guid: d20b13f8620f36b4ab081b59214c4f49
+timeCreated: 1460822767
+licenseType: Free
+TextureImporter:
+  fileIDToRecycleName:
+    21300000: command-buttons_0
+    21300002: command-buttons_1
+  serializedVersion: 2
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 1
+    linearTexture: 0
+    correctGamma: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+  isReadable: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 0
+  cubemapConvolution: 0
+  cubemapConvolutionSteps: 7
+  cubemapConvolutionExponent: 1.5
+  seamlessCubemap: 0
+  textureFormat: -1
+  maxTextureSize: 2048
+  textureSettings:
+    filterMode: 0
+    aniso: 16
+    mipBias: -1
+    wrapMode: 1
+  nPOTScale: 0
+  lightmap: 0
+  rGBM: 0
+  compressionQuality: 50
+  allowsAlphaSplitting: 0
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spritePixelsToUnits: 100
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  buildTargetSettings: []
+  spriteSheet:
+    sprites:
+    - name: command-buttons_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -31, y: -20}
+        - {x: -31, y: -7}
+        - {x: -55, y: -7}
+        - {x: -57, y: -13}
+        - {x: -57, y: -37}
+        - {x: -56, y: -38}
+        - {x: -31, y: -38}
+        - {x: -31, y: -26}
+        - {x: -36, y: -24}
+      - - {x: -30, y: -6}
+        - {x: -30, y: -38}
+        - {x: -20, y: -38}
+        - {x: -20, y: -6}
+      - - {x: -16, y: -13}
+        - {x: -18, y: -16}
+        - {x: -19, y: -20}
+        - {x: -19, y: -34}
+        - {x: -17, y: -37}
+        - {x: -12, y: -38}
+        - {x: 4, y: -38}
+        - {x: 5, y: -37}
+        - {x: 5, y: -15}
+        - {x: 0, y: -13}
+      - - {x: 5, y: -34}
+        - {x: 7, y: -38}
+        - {x: 28, y: -38}
+        - {x: 28, y: -18}
+        - {x: 25, y: -13}
+        - {x: 5, y: -13}
+      - - {x: 30, y: -38}
+        - {x: 41, y: -38}
+        - {x: 48, y: -32}
+        - {x: 48, y: -14}
+        - {x: 30, y: -14}
+      - - {x: -56, y: 36}
+        - {x: -56, y: 6}
+        - {x: -36, y: 6}
+        - {x: -30, y: 7}
+        - {x: -30, y: 34}
+        - {x: -33, y: 36}
+      - - {x: -25, y: 31}
+        - {x: -30, y: 30}
+        - {x: -30, y: 11}
+        - {x: -27, y: 6}
+        - {x: -10, y: 6}
+        - {x: -5, y: 7}
+        - {x: -5, y: 26}
+        - {x: -8, y: 31}
+      - - {x: -5, y: 31}
+        - {x: -5, y: 9}
+        - {x: -4, y: 6}
+        - {x: 18, y: 6}
+        - {x: 18, y: 29}
+        - {x: 15, y: 31}
+      - - {x: 20, y: 38}
+        - {x: 20, y: 6}
+        - {x: 61, y: 6}
+        - {x: 61, y: 38}
+      - - {x: -18, y: 21}
+        - {x: -17, y: 21}
+        - {x: -17, y: 16}
+        - {x: -18, y: 16}
+      - - {x: 49, y: 21}
+        - {x: 50, y: 21}
+        - {x: 50, y: 16}
+        - {x: 49, y: 16}
+      tessellationDetail: 0
+    - name: command-buttons_1
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 0
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: 19, y: -10}
+        - {x: 19, y: -42}
+        - {x: 28, y: -42}
+        - {x: 31, y: -41}
+        - {x: 43, y: -32}
+        - {x: 43, y: -13}
+        - {x: 42, y: -10}
+      - - {x: -22, y: -31}
+        - {x: -18, y: -35}
+        - {x: -8, y: -35}
+        - {x: -6, y: -33}
+        - {x: -6, y: -29}
+        - {x: -6, y: -31}
+        - {x: -3, y: -34}
+        - {x: 0, y: -35}
+        - {x: 18, y: -35}
+        - {x: 18, y: -4}
+        - {x: -47, y: -4}
+        - {x: -49, y: -8}
+        - {x: -49, y: -35}
+        - {x: -26, y: -35}
+        - {x: -23, y: -31}
+        - {x: -22, y: -28}
+        - {x: -22, y: -20}
+      - - {x: -10, y: -25}
+        - {x: -11, y: -20}
+        - {x: -8, y: -20}
+        - {x: -8, y: -25}
+      - - {x: 5, y: -20}
+        - {x: 6, y: -20}
+        - {x: 6, y: -25}
+        - {x: 5, y: -25}
+      - - {x: 30, y: -20}
+        - {x: 31, y: -20}
+        - {x: 31, y: -25}
+        - {x: 30, y: -25}
+      - - {x: -48, y: 39}
+        - {x: -50, y: 37}
+        - {x: -50, y: 27}
+        - {x: -42, y: 9}
+        - {x: -32, y: 9}
+        - {x: -23, y: 27}
+        - {x: -23, y: 39}
+      - - {x: -23, y: 41}
+        - {x: -23, y: 9}
+        - {x: -13, y: 9}
+        - {x: -13, y: 41}
+      - - {x: 22, y: 34}
+        - {x: -11, y: 34}
+        - {x: -11, y: 9}
+        - {x: 25, y: 9}
+        - {x: 25, y: 29}
+      - - {x: 33, y: 34}
+        - {x: 26, y: 33}
+        - {x: 26, y: 13}
+        - {x: 30, y: 9}
+        - {x: 46, y: 9}
+        - {x: 50, y: 10}
+        - {x: 50, y: 30}
+        - {x: 47, y: 34}
+      tessellationDetail: 0
+    outline: []
+  spritePackingTag: 
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
