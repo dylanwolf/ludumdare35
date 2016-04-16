@@ -32,6 +32,7 @@ public class GameBoard : MonoBehaviour {
 	public int ScorePerBlock = 100;
 	public int ClearedBlocks = 0;
 	public int Level = 1;
+	public float DifficultyTimeScale = 1;
 
 	public float SpeedIncreasePerLevel = 0.05f;
 
@@ -44,6 +45,7 @@ public class GameBoard : MonoBehaviour {
 	public GameTile TilePrefab;
 	public PendingBlock PendingPrefab;
 	public Flier FlierPrefab;
+	public CloudPuff CloudPrefab;
 
 	public SliderArrow ArrowPrefab;
 	public Sprite LeftArrow;
@@ -138,6 +140,7 @@ public class GameBoard : MonoBehaviour {
 		Score = 0;
 		BoardClearItems = 0;
 		TimeStopItems = 0;
+		DifficultyTimeScale = 1;
 		if (ClearedBlocksText.Current != null)
 			ClearedBlocksText.Current.Reset();
 		if (LevelText.Current != null)
@@ -172,6 +175,7 @@ public class GameBoard : MonoBehaviour {
 		GameBlock.prefab = BlockPrefab;
 		PendingBlock.prefab = PendingPrefab;
 		Flier.prefab = FlierPrefab;
+		CloudPuff.prefab = CloudPrefab;
 
 		CreateTiles();
 		CreateArrows();
@@ -207,7 +211,7 @@ public class GameBoard : MonoBehaviour {
 				continue;
 			}
 
-			spawnTimer += Time.deltaTime;
+			spawnTimer += Time.deltaTime * DifficultyTimeScale;
 			yield return null;
 		}
 
@@ -508,6 +512,7 @@ public class GameBoard : MonoBehaviour {
                 );
 		}
 
+		CloudPuff.Spawn(block.transform.position);
 		GameBlock.Despawn(block);
 	}
 
@@ -601,6 +606,7 @@ public class GameBoard : MonoBehaviour {
 						GameBlock.Despawn(Board[r, c]);
 				}
 			}
+			SelectBlock(null, null);
 		}
 	}
 

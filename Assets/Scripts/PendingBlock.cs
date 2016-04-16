@@ -39,7 +39,7 @@ public class PendingBlock : MonoBehaviour {
 				continue;
 			}
 
-			timer += Time.deltaTime;
+			timer += Time.deltaTime * GameBoard.Current.DifficultyTimeScale;
 			_i.fillAmount = timer / Timer;
 			tmpColor = _i.color;
 			tmpColor.a = timer / Timer;

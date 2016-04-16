@@ -101,7 +101,7 @@ public class GameBlock : MonoBehaviour {
 				tmpPos.y += (SlideY * movePct * GameBoard.Current.BlockSize);
 				_t.localPosition = tmpPos;
 
-				movePct += SlideSpeed * Time.deltaTime;
+				movePct += SlideSpeed * Time.deltaTime * GameBoard.Current.DifficultyTimeScale;
 				yield return null;
 			}
 
