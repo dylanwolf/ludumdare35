@@ -22,7 +22,6 @@ public class LevelText : MonoBehaviour {
 
 	public void Reset()
 	{
-		Time.timeScale = 1;
 		GameBoard.Current.Level = 1;
 		Refresh();
 	}
@@ -32,6 +31,6 @@ public class LevelText : MonoBehaviour {
 		GameBoard.Current.Level++;
 		Refresh();
 		_b.TriggerBounce();
-		Time.timeScale += GameBoard.Current.SpeedIncreasePerLevel;
+		GameBoard.Current.DifficultyTimeScale += GameBoard.Current.SpeedIncreasePerLevel;
     }
 }

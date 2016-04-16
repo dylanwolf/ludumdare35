@@ -37,7 +37,7 @@ public class Bounce : MonoBehaviour {
 		while (pct < 1)
 		{
 			PositionToPercent();
-			pct += (Time.deltaTime / Time.timeScale) * Speed;
+			pct += Time.deltaTime * Speed;
 			yield return null;
 		}
 
@@ -48,7 +48,7 @@ public class Bounce : MonoBehaviour {
 		while (pct > 0)
 		{
 			PositionToPercent();
-			pct -= (Time.deltaTime / Time.timeScale) * Speed;
+			pct -= Time.deltaTime * Speed;
 			yield return null;
 		}
 
