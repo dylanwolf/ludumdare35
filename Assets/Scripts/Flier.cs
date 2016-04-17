@@ -14,6 +14,12 @@ public class Flier : MonoBehaviour {
 		_t = transform;
 	}
 
+	public enum AudioToPlay
+	{
+		BlockCollect,
+		ItemCollect
+	}
+
 	public float TotalTime = 0.5f;
 	float time = 0;
 
@@ -25,6 +31,7 @@ public class Flier : MonoBehaviour {
 	float distance = 0;
 	GameObject trgt;
 	int targetMessageNumber;
+	AudioToPlay? audioToPlay;
 
 	const string FLY_COROUTINE = "FlyCoroutine";
 	IEnumerator FlyCoroutine()
@@ -46,6 +53,20 @@ public class Flier : MonoBehaviour {
 		{
 			trgt.SendMessage(BOUNCE_MESSAGE);
 			trgt.SendMessage(UPDATE_NUMBER_MESSAGE, targetMessageNumber);
+		}
+
+		if (audioToPlay.HasValue)
+		{
+			switch (audioToPlay.Value)
+			{
+				case AudioToPlay.BlockCollect:
+					SoundBoard.PlayBlockCollect();
+					break;
+
+				case AudioToPlay.ItemCollect:
+					SoundBoard.PlayItemCollect();
+					break;
+			}
 		}
 
 		Despawn(this);
@@ -74,17 +95,18 @@ public class Flier : MonoBehaviour {
 		flier.gameObject.SetActive(false);
 	}
 
-	void InitializeFromPool(Sprite sprite, Vector3 originalPos, Vector3 targetPos, GameObject targetObject, int number)
+	void InitializeFromPool(Sprite sprite, Vector3 originalPos, Vector3 targetPos, GameObject targetObject, int number, AudioToPlay? audio)
 	{
 		_t.position = originalPos;
 		_r.sprite = sprite;
 		Fly(originalPos, targetPos);
 		trgt = targetObject;
 		targetMessageNumber = number;
+		audioToPlay = audio;
 	}
 
 	static Flier tmp;
-	public static Flier Spawn(Sprite sprite, Vector3 originalPos, Vector3 targetPos, GameObject targetObject, int number)
+	public static Flier Spawn(Sprite sprite, Vector3 originalPos, Vector3 targetPos, GameObject targetObject, int number, AudioToPlay? audio)
 	{
 		tmp = null;
 
@@ -95,14 +117,14 @@ public class Flier : MonoBehaviour {
 			{
 				tmp = Pool[i];
 				tmp.gameObject.SetActive(true);
-				tmp.InitializeFromPool(sprite, originalPos, targetPos, targetObject, number);
+				tmp.InitializeFromPool(sprite, originalPos, targetPos, targetObject, number, audio);
 				return tmp;
 			}
 		}
 
 		// Create a new object
 		tmp = (Flier)Instantiate(prefab);
-		tmp.InitializeFromPool(sprite, originalPos, targetPos, targetObject, number);
+		tmp.InitializeFromPool(sprite, originalPos, targetPos, targetObject, number, audio);
 		Pool.Add(tmp);
 		return tmp;
 	}

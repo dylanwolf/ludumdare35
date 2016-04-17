@@ -1,4 +1,6 @@
 Unity
 GIMP
 Krita
+Bfxr
+Audacity
 Manaspace, Return of Ganon fonts

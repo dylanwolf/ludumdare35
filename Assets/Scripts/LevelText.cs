@@ -28,6 +28,7 @@ public class LevelText : MonoBehaviour {
 
 	public void AddLevel()
 	{
+		SoundBoard.PlayLevelUp();
 		GameBoard.Current.Level++;
 		Refresh();
 		_b.TriggerBounce();
