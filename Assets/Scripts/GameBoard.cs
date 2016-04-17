@@ -499,11 +499,11 @@ public class GameBoard : MonoBehaviour {
 			{
 				if (block.PowerupId.Value == GameBlock.Powerup.BoardClear)
 				{
-					Flier.Spawn(block.PowerupSprite, block.transform.position, BoardClearTransform.position, BoardClearTransform.parent.gameObject, 1);
+					Flier.Spawn(block.PowerupSprite, block.transform.position, BoardClearTransform.position, BoardClearTransform.gameObject, 1);
 				}
 				else if (block.PowerupId.Value == GameBlock.Powerup.TimeStop)
 				{
-					Flier.Spawn(block.PowerupSprite, block.transform.position, TimeStopTransform.position, TimeStopTransform.parent.gameObject, 1);
+					Flier.Spawn(block.PowerupSprite, block.transform.position, TimeStopTransform.position, TimeStopTransform.gameObject, 1);
 				}
 			}
 
@@ -542,11 +542,13 @@ public class GameBoard : MonoBehaviour {
 	{
 		blockId = Mathf.Clamp(Random.Range(0, BlockSprites.Length), 0, BlockSprites.Length - 1);
 		float random = Random.value;
+		//if (random >= 0.75f)
 		if (random >= 0.99f)
 		{
 			blockPowerup = GameBlock.Powerup.BoardClear;
 			powerupSprite = BoardClearPowerup;
 		}
+		//else if (random >= 0.5f)
 		else if (random >= 0.95f)
 		{
 			blockPowerup = GameBlock.Powerup.TimeStop;
