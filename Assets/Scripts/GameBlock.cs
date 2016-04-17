@@ -114,6 +114,7 @@ public class GameBlock : MonoBehaviour {
 		}
 
 		IsAnimating = false;
+		SoundBoard.PlayBlockSettle();
 		GameBoard.Current.CurrentState = GameBoard.GameState.Selecting;
 		GameBoard.Current.ResetSelection(this, BoardX, BoardY);
 		if (wasMoved)

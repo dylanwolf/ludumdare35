@@ -153,6 +153,16 @@ public class GameBoard : MonoBehaviour {
 			TimeStopButton.Current.UpdateCount(0);
 
 		StopAllCoroutines();
+
+		CurrentState = GameState.Selecting;
+	}
+
+	public void SetupBoard()
+	{
+		CreateTiles();
+		CreateArrows();
+		InitBlocks();
+		StartCoroutine(SPAWN_TIMER_COROUTINE);
 	}
 
 	Transform _t;
@@ -177,10 +187,7 @@ public class GameBoard : MonoBehaviour {
 		Flier.prefab = FlierPrefab;
 		CloudPuff.prefab = CloudPrefab;
 
-		CreateTiles();
-		CreateArrows();
-		InitBlocks();
-		StartCoroutine(SPAWN_TIMER_COROUTINE);
+		SetupBoard();
 	}
 
 	[System.NonSerialized]
@@ -197,6 +204,46 @@ public class GameBoard : MonoBehaviour {
 		}
 
 		isTimeStopped = false;
+	}
+
+	const string TICK_SOUND_COROUTINE = "TickSoundCoroutine";
+	float tickTimer = 0;
+	int tickTimerCount = 0;
+	int tickTimerCountMax = 4;
+	IEnumerator TickSoundCoroutine()
+	{
+		tickTimer = 0;
+		tickTimerCount = 0;
+		tickTimerCountMax = 4;
+
+		while (isTimeStopped)
+		{
+			// First 6 seconds, every half second
+			if (timeStopTimer <= 6.0f)
+				tickTimerCountMax = 4;
+			// Next 3 seconds, every quarter second
+			else if (timeStopTimer <= 9.0f)
+				tickTimerCountMax = 2;
+			// Next 3 seconds, every quarter second
+			else
+				tickTimerCountMax = 1;
+
+			tickTimer += Time.deltaTime;
+			if (tickTimer >= 0.125f)
+			{
+				tickTimer = tickTimer % 0.125f;
+				tickTimerCount++;
+				if (tickTimerCount >= tickTimerCountMax)
+				{
+					tickTimerCount = tickTimerCount % tickTimerCountMax;
+					SoundBoard.PlayTimeStopTick();
+                }
+			}
+			
+			yield return null;
+		}
+
+		SoundBoard.PlayTimeStopEnd();
 	}
 
 	public const string SPAWN_TIMER_COROUTINE = "SpawnTimerCoroutine";
@@ -251,6 +298,7 @@ public class GameBoard : MonoBehaviour {
 		if (!selectedX.HasValue || !selectedY.HasValue || Board[selectedY.Value, selectedX.Value] == null || SelectedBlock == null)
 			return;
 
+		SoundBoard.PlayBlockShift();
 		Board[selectedY.Value, selectedX.Value].StartSliding(directionX, directionY);
     }
 	#endregion
@@ -277,6 +325,9 @@ public class GameBoard : MonoBehaviour {
 
 		if (x.HasValue && y.HasValue)
 		{
+			if (Board[y.Value, x.Value] != null && Board[y.Value, x.Value] != SelectedBlock)
+				SoundBoard.PlayBlockSelect();
+
 			SelectedBlock = Board[y.Value, x.Value];
             if ((Board[y.Value, x.Value] == null || Board[y.Value, x.Value].IsPending))
 			{
@@ -467,7 +518,7 @@ public class GameBoard : MonoBehaviour {
 		// Destroy blocks if we matched 3 of a kind
 		if (collector.Count >= 3)
 		{
-			// TODO: Do destruction effect for each cell
+			SoundBoard.PlayBlockMatch();
 
 			// Destroy all the blocks
 			while (collector.Count > 0)
@@ -499,17 +550,17 @@ public class GameBoard : MonoBehaviour {
 			{
 				if (block.PowerupId.Value == GameBlock.Powerup.BoardClear)
 				{
-					Flier.Spawn(block.PowerupSprite, block.transform.position, BoardClearTransform.position, BoardClearTransform.gameObject, 1);
+					Flier.Spawn(block.PowerupSprite, block.transform.position, BoardClearTransform.position, BoardClearTransform.gameObject, 1, Flier.AudioToPlay.ItemCollect);
 				}
 				else if (block.PowerupId.Value == GameBlock.Powerup.TimeStop)
 				{
-					Flier.Spawn(block.PowerupSprite, block.transform.position, TimeStopTransform.position, TimeStopTransform.gameObject, 1);
+					Flier.Spawn(block.PowerupSprite, block.transform.position, TimeStopTransform.position, TimeStopTransform.gameObject, 1, Flier.AudioToPlay.ItemCollect);
 				}
 			}
 
 			Flier.Spawn(block.BlockSprite, block.transform.position, ScoreTransform.position, ScoreTransform.gameObject,
-					(collector.Count > 3) ? ScorePerBlock * (collector.Count - 2) : ScorePerBlock
-                );
+					(collector.Count > 3) ? ScorePerBlock * (collector.Count - 2) : ScorePerBlock, Flier.AudioToPlay.BlockCollect
+				);
 		}
 
 		CloudPuff.Spawn(block.transform.position);
@@ -530,7 +581,7 @@ public class GameBoard : MonoBehaviour {
 		}
 
 		// Go to Game Over state
-		Debug.Log("Game Over");
+		GameOver.Current.Show();
 		SelectBlock(null, null);
 		CurrentState = GameState.GameOver;
 	}
@@ -598,6 +649,7 @@ public class GameBoard : MonoBehaviour {
 	{
 		if (BoardClearItems > 0 && CurrentState != GameState.GameOver)
 		{
+			SoundBoard.PlayBoardClear();
 			BoardClearItems--;
 			BoardClearButton.Current.UpdateCount(BoardClearItems);
 			for (int r = 0; r < Rows; r++)
@@ -616,9 +668,15 @@ public class GameBoard : MonoBehaviour {
 	{
 		if (TimeStopItems > 0 && CurrentState != GameState.GameOver)
 		{
+			SoundBoard.PlayTimeStopStart();
 			TimeStopItems--;
 			TimeStopButton.Current.UpdateCount(TimeStopItems);
+
+			StopCoroutine(TIME_STOP_COROUTINE);
+			StopCoroutine(TICK_SOUND_COROUTINE);
+
 			StartCoroutine(TIME_STOP_COROUTINE);
+			StartCoroutine(TICK_SOUND_COROUTINE);
 		}
 	}
 	#endregion

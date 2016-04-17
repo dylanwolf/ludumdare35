@@ -27,9 +27,11 @@ public class PendingBlock : MonoBehaviour {
 	const string TIMER_COROUTINE = "TimerCoroutine";
 
 	Color tmpColor;
+	bool playedSound = false;
 	IEnumerator TimerCoroutine()
 	{
 		timer = 0;
+		playedSound = false;
 
 		while (timer < Timer)
 		{
@@ -40,6 +42,13 @@ public class PendingBlock : MonoBehaviour {
 			}
 
 			timer += Time.deltaTime * GameBoard.Current.DifficultyTimeScale;
+
+			if (!playedSound && (timer / Timer) > 0.9f)
+			{
+				playedSound = true;
+				SoundBoard.PlayBlockAppear();
+			}
+
 			_i.fillAmount = timer / Timer;
 			tmpColor = _i.color;
 			tmpColor.a = timer / Timer;
