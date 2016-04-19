@@ -264,6 +264,125 @@ public class GameBoard : MonoBehaviour {
 
 		SpawnBlock();
 	}
+
+	#region Input
+	bool wasMouseDown = false;
+	Vector2? fingerStart;
+	Vector2 fingerDistance;
+	Vector2 absFingerDistance;
+	const float GESTURE_LENGTH = 0.05f;
+
+	void SetTouchStart(Vector2 pos)
+	{
+		fingerStart = pos;
+	}
+
+	bool SetTouchDrag(Vector2 pos)
+	{
+		if (fingerStart.HasValue)
+		{
+			fingerDistance = pos - fingerStart.Value;
+			fingerDistance.x = fingerDistance.x / Camera.main.pixelWidth;
+			fingerDistance.y = fingerDistance.y / Camera.main.pixelHeight;
+
+			absFingerDistance = fingerDistance;
+			absFingerDistance.x = Mathf.Abs(fingerDistance.x);
+			absFingerDistance.y = Mathf.Abs(fingerDistance.y);
+
+			// Horizontal swipe
+			if (absFingerDistance.x >= GESTURE_LENGTH && absFingerDistance.x > absFingerDistance.y)
+			{
+				SlideSelection((int)Mathf.Sign(fingerDistance.x), 0);
+				fingerStart = null;
+				return true;
+			}
+			// Vertical swipe
+			else if (absFingerDistance.y > GESTURE_LENGTH)
+			{
+				SlideSelection(0, (int)Mathf.Sign(fingerDistance.y));
+				fingerStart = null;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	void SetTouchEnd()
+	{
+		fingerStart = null;
+	}
+
+	const string HORIZONTAL_AXIS = "Horizontal";
+	const string VERITCAL_AXIS = "Vertical";
+	#endregion
+
+	void Update()
+	{
+		if (SelectedBlock != null && CurrentState == GameState.Selecting)
+		{
+			// Detect arrow keys
+			if (Input.GetAxis(HORIZONTAL_AXIS) < 0)
+			{
+				SlideSelection(-1, 0);
+				return;
+			}
+			else if (Input.GetAxis(HORIZONTAL_AXIS) > 0)
+			{
+				SlideSelection(1, 0);
+				return;
+			}
+
+			if (Input.GetAxis(VERITCAL_AXIS) < 0)
+			{
+				SlideSelection(0, -1);
+				return;
+			}
+			else if (Input.GetAxis(VERITCAL_AXIS) > 0)
+			{
+				SlideSelection(0, 1);
+				return;
+			}
+
+			// Detect mouse gestures
+			if (Input.GetMouseButtonDown(0))
+			{
+				wasMouseDown = true;
+				SetTouchStart(Input.mousePosition);
+				return;
+			}
+			else if (Input.GetMouseButtonUp(0))
+			{
+				wasMouseDown = false;
+				SetTouchEnd();
+				return;
+			}
+			else if (wasMouseDown)
+			{
+				SetTouchDrag(Input.mousePosition);
+				return;
+			}
+
+			// Detect touch gestures
+			foreach (Touch t in Input.touches)
+			{
+				if (t.phase == TouchPhase.Began)
+				{
+					SetTouchStart(t.position);
+					return;
+				}
+				else if (t.phase == TouchPhase.Moved)
+				{
+					SetTouchDrag(t.position);
+					return;
+				}
+				else if (t.phase == TouchPhase.Ended || t.phase == TouchPhase.Canceled)
+				{
+					SetTouchEnd();
+					return;
+				}
+			}
+		}
+	}
 	#endregion
 
 	#region Arrows
@@ -295,7 +414,9 @@ public class GameBoard : MonoBehaviour {
 		if (CurrentState != GameState.Selecting)
 			return;
 
-		if (!selectedX.HasValue || !selectedY.HasValue || Board[selectedY.Value, selectedX.Value] == null || SelectedBlock == null)
+		if (!selectedX.HasValue || !selectedY.HasValue || Board[selectedY.Value, selectedX.Value] == null || SelectedBlock == null || 
+			selectedX.Value + directionX < 0 || selectedY.Value + directionY < 0 || selectedX.Value + directionX >= Cols ||
+			selectedY.Value + directionY >= Rows || Board[selectedY.Value+directionY, selectedX.Value+directionX] != null)
 			return;
 
 		SoundBoard.PlayBlockShift();
