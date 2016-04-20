@@ -270,7 +270,8 @@ public class GameBoard : MonoBehaviour {
 	Vector2? fingerStart;
 	Vector2 fingerDistance;
 	Vector2 absFingerDistance;
-	const float GESTURE_LENGTH = 0.05f;
+	Vector2 scaledFingerDistance;
+	const float GESTURE_LENGTH = 0.02f;
 
 	void SetTouchStart(Vector2 pos)
 	{
@@ -282,22 +283,22 @@ public class GameBoard : MonoBehaviour {
 		if (fingerStart.HasValue)
 		{
 			fingerDistance = pos - fingerStart.Value;
-			fingerDistance.x = fingerDistance.x / Camera.main.pixelWidth;
-			fingerDistance.y = fingerDistance.y / Camera.main.pixelHeight;
-
 			absFingerDistance = fingerDistance;
 			absFingerDistance.x = Mathf.Abs(fingerDistance.x);
 			absFingerDistance.y = Mathf.Abs(fingerDistance.y);
 
+			scaledFingerDistance.x = Mathf.Abs(fingerDistance.x / Camera.main.pixelWidth / Camera.main.aspect);
+			scaledFingerDistance.y = Mathf.Abs(fingerDistance.y / Camera.main.pixelHeight);
+
 			// Horizontal swipe
-			if (absFingerDistance.x >= GESTURE_LENGTH && absFingerDistance.x > absFingerDistance.y)
+			if (scaledFingerDistance.x >= GESTURE_LENGTH && absFingerDistance.x > absFingerDistance.y)
 			{
 				SlideSelection((int)Mathf.Sign(fingerDistance.x), 0);
 				fingerStart = null;
 				return true;
 			}
 			// Vertical swipe
-			else if (absFingerDistance.y > GESTURE_LENGTH)
+			else if (scaledFingerDistance.y >= GESTURE_LENGTH)
 			{
 				SlideSelection(0, (int)Mathf.Sign(fingerDistance.y));
 				fingerStart = null;
